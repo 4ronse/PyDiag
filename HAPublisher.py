@@ -112,7 +112,7 @@ class HAPublisher:
 
     async def publish_all(self):
         for entity, func in self.entity_value_getter_map.items():
-            self.publish_entity_state(entity, func())
+            await self.publish_entity_state(entity, func())
 
     def __del__(self):
         """Ensure clean disconnection when object is destroyed."""
