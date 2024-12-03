@@ -4,6 +4,7 @@ from NetworkMonitor import NetworkMonitor
 from DiagUtil import *
 from vars import LOGGING_LEVEL, NETWORK_SPEED_UNIT
 
+from typing import List, Callable, Any
 from colorlog import ColoredFormatter
 
 import asyncio
@@ -33,8 +34,8 @@ async def main():
     pub = HAPublisher()
     await pub.connect()
 
-    monitors: list[NetworkMonitor] = []
-    tasks = list[asyncio.Task] = []
+    monitors: List[NetworkMonitor] = []
+    tasks = List[asyncio.Task] = []
 
     for iface in get_ifaces():
         monitor = NetworkMonitor(interface=iface)
@@ -51,8 +52,8 @@ async def main():
 
     formatted_name = device_info.name.lower().replace(' ', '_').replace('-', '_')
 
-    def get_network_sensors() -> Dict[Sensor, callable[[], any]]:
-        dct: dict[Sensor, callable[[], any]] = {}
+    def get_network_sensors() -> Dict[Sensor, Callable[[], Any]]:
+        dct: Dict[Sensor, Callable[[], Any]] = {}
         for monitor in monitors:
             iface = monitor.interface
 
