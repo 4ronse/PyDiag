@@ -106,7 +106,11 @@ class HAPublisher:
         state_topic = entity.state_topic()
 
         try:
-            value = json.dumps(state_value)
+            value: str
+            if type(state_value) is str:
+                value = state_value
+            else:
+                value = json.dumps(state_value)
             _LOGGER.debug(f"Publishing new entity state for '{entity.name}' [{value}]")
             self.client.publish(state_topic, value).wait_for_publish()
         except Exception as e:

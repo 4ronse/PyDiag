@@ -58,7 +58,7 @@ class NetworkMonitor:
             with self.lock:
                 self.throughput["tx"] = bytes_sent_per_second
                 self.throughput["rx"] = bytes_received_per_second
-                _LOGGER.debug(self.throughput)
+
 
     async def start_monitoring(self):
         self._monitorig_task = asyncio.create_task(self._calculate_throughput())
@@ -69,7 +69,6 @@ class NetworkMonitor:
 
     def get_throughput(self, unit: Unit = Unit.KiloBytes):
         with self.lock:
-            _LOGGER.debug(self.throughput)  # WHY {'tx': 0.0, 'rx': 0.0}
             tx = self.throughput["tx"] / unit.factor
             rx = self.throughput["rx"] / unit.factor
             return {"tx": tx, "rx": rx}

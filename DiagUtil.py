@@ -40,9 +40,9 @@ def get_hostname() -> str:
 
 @strip
 @cache
-def get_rpi_model() -> str | None:
+def get_rpi_model() -> str:
     if not is_raspberrypi():
-        return None
+        return 'No Model'
     with open(MODEL_PATH, 'r') as f:
         return f.read().strip()
 

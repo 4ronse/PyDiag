@@ -56,10 +56,22 @@ async def main():
         manufacturer='Raspberry Pi'
     )
 
+    if get_hostname() == 'DESKTOP-OBGTQEK':
+        device_info = DeviceInfoBuilder(
+            name=get_hostname(),
+            identifiers=['B4-2E-99-6E-5D-80'],
+            model='Gaming X',
+            model_id='Z390',
+            serial_number='B4-2E-99-6E-5D-80',
+            manufacturer='Gigabyte'
+        )
+
+
+
     formatted_name = device_info.name.lower().replace(' ', '_').replace('-', '_')
 
     def get_network_sensors() -> Dict[Sensor, Callable[[], Any]]:
-        dct: Dict[Sensor, Callable[[], Any]] = {}
+        res: Dict[Sensor, Callable[[], Any]] = {}
         for nm in monitors:
             iface = nm.interface
 
@@ -79,9 +91,18 @@ async def main():
                 icon=IconEnum.UPLOAD
             )
 
-            dct[rx_sensor] = lambda: nm.get_throughput(NETWORK_SPEED_UNIT)['rx']
-            dct[tx_sensor] = lambda: nm.get_throughput(NETWORK_SPEED_UNIT)['tx']
-        return dct
+            def get_throuput(current_monitor, rx_tx: Literal['rx'] | Literal['tx']):
+                def inner():
+                    tp = current_monitor.get_throughput(NETWORK_SPEED_UNIT)
+                    _LOGGER.debug(tp)
+                    return tp[rx_tx]
+                return inner
+
+            res[rx_sensor] = get_throuput(nm, 'rx')
+            res[tx_sensor] = get_throuput(nm, 'tx')
+
+        print(res)
+        return res
 
     hostname_sensor = Sensor(
         name="Hostname",
@@ -131,7 +152,13 @@ async def main():
         disk_usage_sensor: get_disk_usage
     }
 
-    for sensor, getter in list(sensorValueMap.items()) + list(get_network_sensors().items()):
+    for sensor, getter in sensorValueMap.items():
+        try:
+            await pub.register_entity(sensor, getter)
+        except:
+            exit(1)
+
+    for sensor, getter in get_network_sensors().items():
         try:
             await pub.register_entity(sensor, getter)
         except:
