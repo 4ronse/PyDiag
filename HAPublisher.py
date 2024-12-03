@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import Callable, List, Union
 from paho.mqtt.client import ConnectFlags, DisconnectFlags, ReasonCode, Properties
 from paho.mqtt.packettypes import PacketTypes
 
@@ -37,8 +37,7 @@ class HAPublisher:
 
         self.client.username_pw_set(username, password)
 
-        self.registered_entities: List[BaseEntity] = []
-        self.not_registered_entities: List[BaseEntity] = []
+        self.entity_value_getter_map: Dict[BaseEntity, Callable[[], Any]] = {}
 
     def _on_connect(self, client: mqtt.Client, userdata: any, cf: ConnectFlags, rc: ReasonCode, properties: Union[Properties, None]):
         connection_results = {
@@ -84,7 +83,7 @@ class HAPublisher:
             _LOGGER.error(f"CRITICAL MQTT Connection Error: {e}")
             raise
 
-    async def register_entity(self, entity: BaseEntity):
+    async def register_entity(self, entity: BaseEntity, value_getter: Callable[[], Any]):
         _LOGGER.info(f"Registering entity '{entity.name}' [{entity.unique_id}]")
 
         config_topic = entity.config_topic()
@@ -97,17 +96,12 @@ class HAPublisher:
                 retain=True,
                 properties=Properties(PacketTypes.PUBLISH)
             ).wait_for_publish()
-            self.registered_entities.append(entity)
 
-            if entity in self.not_registered_entities:
-                self.not_registered_entities.remove(entity)
+            self.entity_value_getter_map[entity] = value_getter
         except Exception as e:
             raise
 
     async def publish_entity_state(self, entity: BaseEntity, state_value: Any):
-        if entity not in self.registered_entities:
-            await self.register_entity(entity)
-
         _LOGGER.debug(f"Publishing new entity state for '{entity.name}' [{json.dumps(state_value)}]")
         state_topic = entity.state_topic()
 
@@ -116,11 +110,9 @@ class HAPublisher:
         except Exception as e:
             raise
 
-    def add_entity(self, entity: BaseEntity):
-        if (not (entity in self.registered_entities)) and (not (entity in self.not_registered_entities)):
-            self.not_registered_entities.append(entity)
-            return
-        raise ValueError("Value duplication for entity " + entity.name)
+    async def publish_all(self):
+        for entity, func in self.entity_value_getter_map.items():
+            self.publish_entity_state(entity, func())
 
     def __del__(self):
         """Ensure clean disconnection when object is destroyed."""

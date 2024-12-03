@@ -54,7 +54,7 @@ class NetworkMonitor:
     async def start_monitoring(self):
         await self._calculate_throughput()
 
-    def get_throughput(self, unit="B/s"):
+    def get_throughput(self, unit="kB/s"):
         if unit not in self.UNITS:
             raise ValueError(f"Invalid unit '{unit}'. Supported units: {list(self.UNITS.keys())}")
 

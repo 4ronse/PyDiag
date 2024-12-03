@@ -48,7 +48,8 @@ async def main():
     hostname_sensor = Sensor(
         name="Hostname",
         unique_id=f'{formatted_name}_hostname',
-        device=device_info
+        device=device_info,
+        entity_category=EntityCategory.DIAGNOSTIC
     )
 
     temperature_sensor = Sensor(
@@ -84,46 +85,20 @@ async def main():
         unit_of_measurement='%'
     )
 
-    network_interface_sensor = Sensor(
-        name='Ethernet Interface',
-        unique_id=f'{formatted_name}_ethernet_iface',
-        device=device_info,
-    )
-
-    network_tx_sensor = Sensor(
-        name=f'{network_monitor.interface} TX',
-        unique_id=f'{formatted_name}_ethernet_iface_tx',
-        device=device_info,
-        unit_of_measurement='kB/s',
-        icon=IconEnum.UPLOAD
-    )
-
-    network_rx_sensor = Sensor(
-        name=f'{network_monitor.interface} RX',
-        unique_id=f'{formatted_name}_ethernet_iface_rx',
-        device=device_info,
-        unit_of_measurement='kB/s',
-        icon=IconEnum.DOWNLOAD
-    )
-
     sensorValueMap = {
         hostname_sensor: get_hostname,
         temperature_sensor: get_temp,
         cpu_usage_sensor: get_cpu_usage,
         memory_usage_sensor: get_memory_usage,
-        disk_usage_sensor: get_disk_usage,
-        network_interface_sensor: lambda: network_monitor.interface,
-        network_tx_sensor: lambda: network_monitor.get_throughput()['tx'],
-        network_rx_sensor: lambda: network_monitor.get_throughput()['rx'],
+        disk_usage_sensor: get_disk_usage
     }
 
-    for sensor in sensorValueMap.keys():
-        await pub.register_entity(sensor)
+    for sensor, getter in sensorValueMap.items():
+        await pub.register_entity(sensor, getter)
 
     try:
         while True:
-            for sensor, func in sensorValueMap.items():
-                await pub.publish_entity_state(sensor, func())
+            await pub.publish_all()
             await asyncio.sleep(5)
     except KeyboardInterrupt:
         print('Stopping...')
