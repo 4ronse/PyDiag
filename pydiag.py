@@ -2,6 +2,7 @@ from HAEntities import *
 from HAPublisher import HAPublisher
 from NetworkMonitor import NetworkMonitor
 from DiagUtil import *
+from vars import LOGGING_LEVEL
 
 from colorlog import ColoredFormatter
 
@@ -25,7 +26,7 @@ async def main():
     console_handler.setFormatter(colored_formatter)
 
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=LOGGING_LEVEL,
         handlers=[console_handler]
     )
 
