@@ -125,7 +125,7 @@ async def main():
         disk_usage_sensor: get_disk_usage
     }
 
-    for sensor, getter in sensorValueMap.items() + get_network_sensors().items():
+    for sensor, getter in list(sensorValueMap.items()) + list(get_network_sensors().items()):
         await pub.register_entity(sensor, getter)
 
     try:
