@@ -14,9 +14,9 @@ class NetworkMonitor:
         MegaBytes = (1_000_000, "MB/s")
         GigaBytes = (1_000_000_000, "GB/s")
 
-        def __init__(self, factor, name):
+        def __init__(self, factor: int, unit_name: str):
             self.factor = factor
-            self.unit_name = name
+            self.unit_name = unit_name
 
     def __init__(self, interface='eth0', sample_interval=1):
         self.interface = interface
@@ -61,9 +61,6 @@ class NetworkMonitor:
         await self._calculate_throughput()
 
     def get_throughput(self, unit: Unit = Unit.KiloBytes):
-        if unit not in self.Unit:
-            raise ValueError(f"Invalid unit '{unit}'. Supported units: {list(self.Unit._member_names_)}")
-
         with self.lock:
             _LOGGER.debug(self.throughput)
             tx = self.throughput["tx"] / unit.factor
