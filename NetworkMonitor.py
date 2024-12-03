@@ -63,9 +63,9 @@ class NetworkMonitor:
         if unit not in self.Unit:
             raise ValueError(f"Invalid unit '{unit}'. Supported units: {list(self.Unit._member_names_)}")
 
+        _LOGGER.debug(self.throughput)
         with self.lock:
             tx = self.throughput["tx"] / unit.factor
             rx = self.throughput["rx"] / unit.factor
             return {"tx": tx, "rx": rx}
-        _LOGGER.debug(self.throughput)
 

@@ -84,7 +84,7 @@ async def main():
                 def inner():
                     tp = monitor.get_throughput(NETWORK_SPEED_UNIT)
                     _LOGGER.debug(tp)
-                    return tp
+                    return tp[rx_tx]
                 return inner
 
             dct[rx_sensor] = get_throuput('rx')
