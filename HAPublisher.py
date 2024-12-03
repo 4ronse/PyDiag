@@ -99,7 +99,7 @@ class HAPublisher:
 
             self.entity_value_getter_map[entity] = value_getter
         except Exception as e:
-            _LOGGER.warning(f"Failed to register entity '{entity.name}'", e)
+            _LOGGER.exception(f"Failed to register entity '{entity.name}'")
             raise
 
     async def publish_entity_state(self, entity: BaseEntity, state_value: Any):
@@ -110,7 +110,7 @@ class HAPublisher:
             _LOGGER.debug(f"Publishing new entity state for '{entity.name}' [{value}]")
             self.client.publish(state_topic, value).wait_for_publish()
         except Exception as e:
-            _LOGGER.warning(f"Failed to publish entity state for '{entity.name}' (Value: '{state_value}')", e)
+            _LOGGER.exception(f"Failed to publish entity state for '{entity.name}' (Value: '{state_value}')")
             raise
 
     async def publish_all(self):
