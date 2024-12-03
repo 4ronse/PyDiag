@@ -46,8 +46,10 @@ async def main():
 
     for iface in get_ifaces():
         monitor = NetworkMonitor(interface=iface)
+        task = asyncio.create_task(monitor.start_monitoring())
+        
         monitors.append(monitor)
-        tasks.append(asyncio.create_task(monitor.start_monitoring()))
+        tasks.append(task)
 
     device_info = DeviceInfoBuilder(
         name=get_hostname(),

@@ -55,6 +55,7 @@ class NetworkMonitor:
             with self.lock:
                 self.throughput["tx"] = bytes_sent_per_second
                 self.throughput["rx"] = bytes_received_per_second
+                _LOGGER.debug(self.throughput)
 
     async def start_monitoring(self):
         await self._calculate_throughput()
