@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import NoReturn
 import psutil
 
 from threading import Lock
@@ -23,6 +24,8 @@ class NetworkMonitor:
         self.sample_interval = sample_interval
         self.throughput = {"tx": 0.0, "rx": 0.0}
         self.lock = Lock()
+
+        self._monitorig_task: asyncio.Task[NoReturn] | None = None
 
         _LOGGER.debug(f'NetworkMonitor for interface {interface} initiated')
 
@@ -58,7 +61,11 @@ class NetworkMonitor:
                 _LOGGER.debug(self.throughput)
 
     async def start_monitoring(self):
-        return asyncio.create_task(self._calculate_throughput())
+        self._monitorig_task = asyncio.create_task(self._calculate_throughput())
+        return self._monitorig_task
+
+    def get_monitoring_task(self) -> None | asyncio.Task[NoReturn]:
+        return self._monitorig_task
 
     def get_throughput(self, unit: Unit = Unit.KiloBytes):
         with self.lock:

@@ -42,14 +42,11 @@ async def main():
         sys.exit(1)
 
     monitors: List[NetworkMonitor] = []
-    tasks: List[asyncio.Task[Any]] = []
 
     for iface in get_ifaces():
         monitor = NetworkMonitor(interface=iface)
-        task = await monitor.start_monitoring()
-
+        await monitor.start_monitoring()
         monitors.append(monitor)
-        tasks.append(task)
 
     device_info = DeviceInfoBuilder(
         name=get_hostname(),
@@ -63,8 +60,8 @@ async def main():
 
     def get_network_sensors() -> Dict[Sensor, Callable[[], Any]]:
         dct: Dict[Sensor, Callable[[], Any]] = {}
-        for monitor in monitors:
-            iface = monitor.interface
+        for nm in monitors:
+            iface = nm.interface
 
             rx_sensor = Sensor(
                 name=f'{iface} RX',
@@ -84,7 +81,7 @@ async def main():
 
             def get_throuput(rx_tx: Literal['rx'] | Literal['tx']):
                 def inner():
-                    tp = monitor.get_throughput(NETWORK_SPEED_UNIT)
+                    tp = nm.get_throughput(NETWORK_SPEED_UNIT)
                     _LOGGER.debug(tp)
                     return tp[rx_tx]
                 return inner
@@ -153,10 +150,11 @@ async def main():
             await asyncio.sleep(5)
     except KeyboardInterrupt:
         print('Stopping...')
-
-        for task in tasks:
-            task.cancel()
-            await task
+        for nm in monitors:
+            task = nm.get_monitoring_task()
+            if task:
+                task.cancel()
+                await task
 
 if __name__ == '__main__':
     asyncio.run(main())
