@@ -1,5 +1,6 @@
 from typing import List, Union
 from paho.mqtt.client import ConnectFlags, DisconnectFlags, ReasonCode, Properties
+from paho.mqtt.packettypes import PacketTypes
 
 from vars import *
 from HAEntities import *
@@ -90,7 +91,12 @@ class HAPublisher:
         entity_config = entity.to_dict()
 
         try:
-            self.client.publish(config_topic, json.dumps(entity_config), retain=True).wait_for_publish()
+            self.client.publish(
+                config_topic,
+                json.dumps(entity_config),
+                retain=True,
+                properties=Properties(PacketTypes.PUBLISH)
+            ).wait_for_publish()
             self.registered_entities.append(entity)
 
             if entity in self.not_registered_entities:
