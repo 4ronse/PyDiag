@@ -35,7 +35,7 @@ async def main():
     await pub.connect()
 
     monitors: List[NetworkMonitor] = []
-    tasks = List[asyncio.Task[Any]] = []
+    tasks: List[asyncio.Task[Any]] = []
 
     for iface in get_ifaces():
         monitor = NetworkMonitor(interface=iface)
