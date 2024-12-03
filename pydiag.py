@@ -1,3 +1,4 @@
+import sys
 from HAEntities import *
 from HAPublisher import HAPublisher
 from NetworkMonitor import NetworkMonitor
@@ -32,7 +33,11 @@ async def main():
     )
 
     pub = HAPublisher()
-    await pub.connect()
+
+    try:
+        await pub.connect()
+    except:
+        sys.exit(1)
 
     monitors: List[NetworkMonitor] = []
     tasks: List[asyncio.Task[Any]] = []
@@ -131,7 +136,10 @@ async def main():
     }
 
     for sensor, getter in list(sensorValueMap.items()) + list(get_network_sensors().items()):
-        await pub.register_entity(sensor, getter)
+        try:
+            await pub.register_entity(sensor, getter)
+        except:
+            exit(1)
 
     try:
         while True:
