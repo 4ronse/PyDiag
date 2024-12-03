@@ -9,10 +9,14 @@ _LOGGER = logging.getLogger(__name__)
 
 class NetworkMonitor:
     class Unit(Enum):
-        Bytes = 1
-        KiloBytes = 1_000
-        MegaBytes = 1_000_000
-        GigaBytes = 1_000_000_000
+        Bytes = (1, "B/s")
+        KiloBytes = (1_000, "kB/s")
+        MegaBytes = (1_000_000, "MB/s")
+        GigaBytes = (1_000_000_000, "GB/s")
+
+        def __init__(self, factor, name):
+            self.factor = factor
+            self.name = name
 
     def __init__(self, interface='eth0', sample_interval=1):
         self.interface = interface
@@ -60,7 +64,7 @@ class NetworkMonitor:
             raise ValueError(f"Invalid unit '{unit}'. Supported units: {list(self.Unit._member_names_)}")
 
         with self.lock:
-            tx = self.throughput["tx"] / unit.value
-            rx = self.throughput["rx"] / unit.value
+            tx = self.throughput["tx"] / unit.factor
+            rx = self.throughput["rx"] / unit.factor
             return {"tx": tx, "rx": rx}
 

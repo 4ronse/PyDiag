@@ -74,7 +74,7 @@ async def main():
                 name=f'{iface} TX',
                 unique_id=f'{formatted_name}_{iface}_tx',
                 device=device_info,
-                unit_of_measurement=NETWORK_SPEED_UNIT,
+                unit_of_measurement=NETWORK_SPEED_UNIT.name,
                 icon=IconEnum.UPLOAD
             )
 
