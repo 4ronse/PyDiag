@@ -93,15 +93,11 @@ async def main():
 
             def get_throuput(current_monitor, rx_tx: Literal['rx'] | Literal['tx']):
                 def inner():
-                    tp = current_monitor.get_throughput(NETWORK_SPEED_UNIT)
-                    _LOGGER.debug(tp)
-                    return tp[rx_tx]
+                    return current_monitor.get_throughput(NETWORK_SPEED_UNIT)[rx_tx]
                 return inner
 
             res[rx_sensor] = get_throuput(nm, 'rx')
             res[tx_sensor] = get_throuput(nm, 'tx')
-
-        print(res)
         return res
 
     hostname_sensor = Sensor(
