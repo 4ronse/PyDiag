@@ -79,15 +79,8 @@ async def main():
                 icon=IconEnum.UPLOAD
             )
 
-            def get_throuput(rx_tx: Literal['rx'] | Literal['tx']):
-                def inner():
-                    tp = nm.get_throughput(NETWORK_SPEED_UNIT)
-                    _LOGGER.debug(tp)
-                    return tp[rx_tx]
-                return inner
-
-            dct[rx_sensor] = get_throuput('rx')
-            dct[tx_sensor] = get_throuput('tx')
+            dct[rx_sensor] = lambda: nm.get_throughput(NETWORK_SPEED_UNIT)['rx']
+            dct[tx_sensor] = lambda: nm.get_throughput(NETWORK_SPEED_UNIT)['tx']
         return dct
 
     hostname_sensor = Sensor(
