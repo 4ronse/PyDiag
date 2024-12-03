@@ -3,16 +3,16 @@ import logging
 import psutil
 
 from threading import Lock
+from enum import Enum
 
 _LOGGER = logging.getLogger(__name__)
 
 class NetworkMonitor:
-    UNITS = {
-        "B/s": 1,
-        "kB/s": 1_000,
-        "MB/s": 1_000_000,
-        "GB/s": 1_000_000_000,
-    }
+    class Unit(Enum):
+        Bytes = 1
+        KiloBytes = 1_000
+        MegaBytes = 1_000_000
+        GigaBytes = 1_000_000_000
 
     def __init__(self, interface='eth0', sample_interval=1):
         self.interface = interface
@@ -51,16 +51,16 @@ class NetworkMonitor:
             with self.lock:
                 self.throughput["tx"] = bytes_sent_per_second
                 self.throughput["rx"] = bytes_received_per_second
-                _LOGGER.debug(self.throughput)
 
     async def start_monitoring(self):
         await self._calculate_throughput()
 
-    def get_throughput(self, unit="kB/s"):
-        if unit not in self.UNITS:
-            raise ValueError(f"Invalid unit '{unit}'. Supported units: {list(self.UNITS.keys())}")
+    def get_throughput(self, unit: Unit = Unit.KiloBytes):
+        if unit not in self.Unit:
+            raise ValueError(f"Invalid unit '{unit}'. Supported units: {list(self.Unit._member_names_)}")
 
         with self.lock:
-            tx = self.throughput["tx"] / self.UNITS[unit]
-            rx = self.throughput["rx"] / self.UNITS[unit]
+            tx = self.throughput["tx"] / unit.value
+            rx = self.throughput["rx"] / unit.value
             return {"tx": tx, "rx": rx}
+

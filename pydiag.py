@@ -4,7 +4,7 @@ from NetworkMonitor import NetworkMonitor
 from DiagUtil import *
 from vars import LOGGING_LEVEL, NETWORK_SPEED_UNIT
 
-from typing import List, Callable, Any
+from typing import List, Callable, Any, Literal
 from colorlog import ColoredFormatter
 
 import asyncio
@@ -73,8 +73,13 @@ async def main():
                 icon=IconEnum.UPLOAD
             )
 
-            dct[rx_sensor] = lambda: monitor.get_throughput(NETWORK_SPEED_UNIT)['rx']
-            dct[tx_sensor] = lambda: monitor.get_throughput(NETWORK_SPEED_UNIT)['tx']
+            def get_throuput(rx_tx: Literal['rx'] | Literal['tx']):
+                def inner():
+                    return monitor.get_throughput(NETWORK_SPEED_UNIT)[rx_tx]
+                return inner
+
+            dct[rx_sensor] = lambda: get_throuput('rx')
+            dct[tx_sensor] = lambda: get_throuput('tx')
         return dct
 
     hostname_sensor = Sensor(
