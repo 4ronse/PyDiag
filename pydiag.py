@@ -1,4 +1,3 @@
-from typing import Literal
 from HAEntities import *
 from HAPublisher import HAPublisher
 from NetworkMonitor import NetworkMonitor
@@ -106,12 +105,6 @@ async def main():
         icon=IconEnum.DOWNLOAD
     )
 
-    def get_throughput(t: Literal['tx'] | Literal['rx']):
-        throughput = network_monitor.get_throughput()
-        def inner():
-            return throughput[t]
-        return inner
-
     sensorValueMap = {
         hostname_sensor: get_hostname,
         temperature_sensor: get_temp,
@@ -119,8 +112,8 @@ async def main():
         memory_usage_sensor: get_memory_usage,
         disk_usage_sensor: get_disk_usage,
         network_interface_sensor: lambda: network_monitor.interface,
-        network_tx_sensor: get_throughput('tx'),
-        network_rx_sensor: get_throughput('rx'),
+        network_tx_sensor: lambda: network_monitor.get_throughput['tx'],
+        network_rx_sensor: lambda: network_monitor.get_throughput['rx'],
     }
 
     for sensor in sensorValueMap.keys():
