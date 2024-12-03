@@ -117,7 +117,7 @@ async def main():
         unit_of_measurement='%'
     )
 
-    sensorValueMap = {
+    sensorValueMap: Dict[BaseEntity, Callable[[], Any]] = {
         hostname_sensor: get_hostname,
         temperature_sensor: get_temp,
         cpu_usage_sensor: get_cpu_usage,

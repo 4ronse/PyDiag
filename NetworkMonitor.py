@@ -1,11 +1,10 @@
 import asyncio
+import logging
 import psutil
 
 from threading import Lock
 
-import asyncio
-import psutil
-from threading import Lock
+_LOGGER = logging.getLogger(__name__)
 
 class NetworkMonitor:
     UNITS = {
@@ -20,6 +19,8 @@ class NetworkMonitor:
         self.sample_interval = sample_interval
         self.throughput = {"tx": 0.0, "rx": 0.0}
         self.lock = Lock()
+
+        _LOGGER.debug(f'NetworkMonitor for interface {interface} initiated')
 
     async def _calculate_throughput(self):
         while True:
@@ -50,6 +51,7 @@ class NetworkMonitor:
             with self.lock:
                 self.throughput["tx"] = bytes_sent_per_second
                 self.throughput["rx"] = bytes_received_per_second
+                _LOGGER.debug(self.throughput)
 
     async def start_monitoring(self):
         await self._calculate_throughput()
