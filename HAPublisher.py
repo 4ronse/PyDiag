@@ -90,7 +90,7 @@ class HAPublisher:
         entity_config = entity.to_dict()
 
         try:
-            self.client.publish(config_topic, json.dumps(entity_config), True).wait_for_publish()
+            self.client.publish(config_topic, json.dumps(entity_config), retain=True).wait_for_publish()
             self.registered_entities.append(entity)
 
             if entity in self.not_registered_entities:
