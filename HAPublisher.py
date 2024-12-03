@@ -99,15 +99,18 @@ class HAPublisher:
 
             self.entity_value_getter_map[entity] = value_getter
         except Exception as e:
+            _LOGGER.warning(f"Failed to register entity '{entity.name}'", e)
             raise
 
     async def publish_entity_state(self, entity: BaseEntity, state_value: Any):
-        _LOGGER.debug(f"Publishing new entity state for '{entity.name}' [{json.dumps(state_value)}]")
         state_topic = entity.state_topic()
 
         try:
-            self.client.publish(state_topic, json.dumps(state_value)).wait_for_publish()
+            value = json.dumps(state_value)
+            _LOGGER.debug(f"Publishing new entity state for '{entity.name}' [{value}]")
+            self.client.publish(state_topic, value).wait_for_publish()
         except Exception as e:
+            _LOGGER.warning(f"Failed to publish entity state for '{entity.name}' (Value: '{state_value}')", e)
             raise
 
     async def publish_all(self):
@@ -120,5 +123,5 @@ class HAPublisher:
             self.client.loop_stop()
             self.client.disconnect()
         except Exception as e:
-            _LOGGER.error(f"Error during cleanup: {e}")
+            _LOGGER.error(f"Error during cleanup: {e}", e)
             raise
