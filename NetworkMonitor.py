@@ -58,11 +58,11 @@ class NetworkMonitor:
                 _LOGGER.debug(self.throughput)
 
     async def start_monitoring(self):
-        await self._calculate_throughput()
+        return asyncio.create_task(self._calculate_throughput())
 
     def get_throughput(self, unit: Unit = Unit.KiloBytes):
         with self.lock:
-            _LOGGER.debug(self.throughput)
+            _LOGGER.debug(self.throughput)  # WHY {'tx': 0.0, 'rx': 0.0}
             tx = self.throughput["tx"] / unit.factor
             rx = self.throughput["rx"] / unit.factor
             return {"tx": tx, "rx": rx}

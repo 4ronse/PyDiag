@@ -46,8 +46,8 @@ async def main():
 
     for iface in get_ifaces():
         monitor = NetworkMonitor(interface=iface)
-        task = asyncio.create_task(monitor.start_monitoring())
-        
+        task = await monitor.start_monitoring()
+
         monitors.append(monitor)
         tasks.append(task)
 
