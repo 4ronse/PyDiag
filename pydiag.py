@@ -78,8 +78,8 @@ async def main():
                     return monitor.get_throughput(NETWORK_SPEED_UNIT)[rx_tx]
                 return inner
 
-            dct[rx_sensor] = lambda: get_throuput('rx')
-            dct[tx_sensor] = lambda: get_throuput('tx')
+            dct[rx_sensor] = get_throuput('rx')
+            dct[tx_sensor] = get_throuput('tx')
         return dct
 
     hostname_sensor = Sensor(
