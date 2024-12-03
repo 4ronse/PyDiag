@@ -17,6 +17,15 @@ def cache(f: 'function'):
         return memory[name]
     return wrapper
 
+def strip(f: 'function'):
+    def wrapper(*a, **kw):
+        result: str = f(*a, **kw)
+        result = result.strip()
+        if result.endswith('\u0000'):
+            result = result[:-1]
+        return result
+    return wrapper
+
 @cache
 def is_raspberrypi():
     if not os.path.exists(MODEL_PATH):
@@ -25,10 +34,12 @@ def is_raspberrypi():
         return f.read().lower().startswith('raspberry pi')
 
 @cache
+@strip
 def get_hostname() -> str:
     return socket.gethostname().strip()
 
 @cache
+@strip
 def get_rpi_model() -> str | None:
     if not is_raspberrypi():
         return None
@@ -36,6 +47,7 @@ def get_rpi_model() -> str | None:
         return f.read().strip()
 
 @cache
+@strip
 def get_serial_number() -> str:
     if os.path.exists(SERIAL_NUMBER_PATH):
         # For Raspberry Pi or similar devices with a specific path for the serial number
@@ -53,7 +65,6 @@ def get_serial_number() -> str:
             return str(abs(hash(get_hostname())))
     except Exception as e:
         return str(abs(hash(get_hostname())))
-
 
 def get_temp() -> float:
     try:
