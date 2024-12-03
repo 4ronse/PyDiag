@@ -2,7 +2,7 @@ from HAEntities import *
 from HAPublisher import HAPublisher
 from NetworkMonitor import NetworkMonitor
 from DiagUtil import *
-from vars import LOGGING_LEVEL
+from vars import LOGGING_LEVEL, NETWORK_SPEED_UNIT
 
 from colorlog import ColoredFormatter
 
@@ -31,9 +31,15 @@ async def main():
     )
 
     pub = HAPublisher()
-    network_monitor = NetworkMonitor()
-    monitoring_task = asyncio.create_task(network_monitor.start_monitoring())
     await pub.connect()
+
+    monitors: list[NetworkMonitor] = []
+    tasks = list[asyncio.Task] = []
+
+    for iface in get_ifaces():
+        monitor = NetworkMonitor(interface=iface)
+        monitors.append(monitor)
+        tasks.append(asyncio.create_task(monitor.start_monitoring()))
 
     device_info = DeviceInfoBuilder(
         name=get_hostname(),
@@ -44,6 +50,31 @@ async def main():
     )
 
     formatted_name = device_info.name.lower().replace(' ', '_').replace('-', '_')
+
+    def get_network_sensors() -> Dict[Sensor, callable[[], any]]:
+        dct: dict[Sensor, callable[[], any]] = {}
+        for monitor in monitors:
+            iface = monitor.interface
+
+            rx_sensor = Sensor(
+                name=f'{iface} RX',
+                unique_id=f'{formatted_name}_{iface}_rx',
+                device=device_info,
+                unit_of_measurement=NETWORK_SPEED_UNIT,
+                icon=IconEnum.DOWNLOAD
+            )
+
+            tx_sensor = Sensor(
+                name=f'{iface} TX',
+                unique_id=f'{formatted_name}_{iface}_tx',
+                device=device_info,
+                unit_of_measurement=NETWORK_SPEED_UNIT,
+                icon=IconEnum.UPLOAD
+            )
+
+            dct[rx_sensor] = lambda: monitor.get_throughput(NETWORK_SPEED_UNIT)['rx']
+            dct[tx_sensor] = lambda: monitor.get_throughput(NETWORK_SPEED_UNIT)['tx']
+        return dct
 
     hostname_sensor = Sensor(
         name="Hostname",
@@ -93,7 +124,7 @@ async def main():
         disk_usage_sensor: get_disk_usage
     }
 
-    for sensor, getter in sensorValueMap.items():
+    for sensor, getter in sensorValueMap.items() + get_network_sensors().items():
         await pub.register_entity(sensor, getter)
 
     try:
@@ -102,10 +133,10 @@ async def main():
             await asyncio.sleep(5)
     except KeyboardInterrupt:
         print('Stopping...')
-        monitoring_task.cancel()
-        await monitoring_task
 
-
+        for task in tasks:
+            task.cancel()
+            await task
 
 if __name__ == '__main__':
     asyncio.run(main())

@@ -97,3 +97,9 @@ def get_memory_usage() -> float:
 
 def get_cpu_usage() -> float:
     return float(psutil.cpu_percent(interval=None))
+
+
+# Helpers
+
+def get_ifaces() -> list[str]:
+    return list(psutil.net_if_addrs().keys())
