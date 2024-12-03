@@ -16,7 +16,7 @@ class NetworkMonitor:
 
         def __init__(self, factor, name):
             self.factor = factor
-            self.name = name
+            self.unit_name = name
 
     def __init__(self, interface='eth0', sample_interval=1):
         self.interface = interface
