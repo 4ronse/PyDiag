@@ -67,4 +67,5 @@ class NetworkMonitor:
             tx = self.throughput["tx"] / unit.factor
             rx = self.throughput["rx"] / unit.factor
             return {"tx": tx, "rx": rx}
+        _LOGGER.debug(self.throughput)
 
