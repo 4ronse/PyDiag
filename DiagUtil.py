@@ -33,21 +33,21 @@ def is_raspberrypi():
     with open(MODEL_PATH, 'r') as f:
         return f.read().lower().startswith('raspberry pi')
 
-@cache
 @strip
+@cache
 def get_hostname() -> str:
     return socket.gethostname().strip()
 
-@cache
 @strip
+@cache
 def get_rpi_model() -> str | None:
     if not is_raspberrypi():
         return None
     with open(MODEL_PATH, 'r') as f:
         return f.read().strip()
 
-@cache
 @strip
+@cache
 def get_serial_number() -> str:
     if os.path.exists(SERIAL_NUMBER_PATH):
         # For Raspberry Pi or similar devices with a specific path for the serial number
