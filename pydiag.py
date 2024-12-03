@@ -11,6 +11,8 @@ from colorlog import ColoredFormatter
 import asyncio
 import logging
 
+_LOGGER = logging.getLogger(__name__)
+
 async def main():
     colored_formatter = ColoredFormatter(
         fmt='%(log_color)s[%(asctime)s] [%(levelname)s] [%(module)s#%(funcName)s()] %(message)s',
@@ -80,7 +82,8 @@ async def main():
 
             def get_throuput(rx_tx: Literal['rx'] | Literal['tx']):
                 def inner():
-                    return monitor.get_throughput(NETWORK_SPEED_UNIT)[rx_tx]
+                    tp = monitor.get_throughput(NETWORK_SPEED_UNIT)
+                    _LOGGER.debug(tp)
                 return inner
 
             dct[rx_sensor] = get_throuput('rx')
