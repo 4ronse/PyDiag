@@ -1,15 +1,13 @@
-from typing import Callable, List, Union
+import json
+import logging
+import paho.mqtt.client as mqtt
+
+from typing import Callable, Union
 from paho.mqtt.client import ConnectFlags, DisconnectFlags, ReasonCode, Properties
 from paho.mqtt.packettypes import PacketTypes
 
 from vars import *
 from HAEntities import *
-
-import json
-import logging
-import paho.mqtt.client as mqtt
-import paho.mqtt.publish as publish
-
 from DiagUtil import get_hostname
 
 _LOGGER = logging.getLogger(__name__)

@@ -1,8 +1,8 @@
 import asyncio
 import logging
-from typing import NoReturn
 import psutil
 
+from typing import NoReturn
 from threading import Lock
 from enum import Enum
 
