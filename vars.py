@@ -70,6 +70,7 @@ def mqtt_topic_format(value: str) -> str:
     return value
 
 # Config
+MQTT_PUBLISH_INTERVAL = int(os.environ.get('MQTT_PUBLISH_INTERVAL', 5))
 MQTT_USER = os.environ.get('MQTT_USER')
 MQTT_PASS = os.environ.get('MQTT_PASS')
 MQTT_PORT = int(os.environ.get('MQTT_PORT'))
@@ -88,6 +89,7 @@ DEV_DEVICE_CONFIG = load_dev_device()
 # Tests
 if __name__ == '__main__':
     # Test MQTT configuration
+    assert MQTT_PUBLISH_INTERVAL is not None, "MQTT_PUBLISH_INTERVAL is not set"
     assert MQTT_USER is not None, "MQTT_USER is not set"
     assert MQTT_PASS is not None, "MQTT_PASS is not set"
     assert MQTT_PORT is not None, "MQTT_PORT is not set"
