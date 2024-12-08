@@ -8,9 +8,10 @@ from paho.mqtt.packettypes import PacketTypes
 
 from vars import *
 from HAEntities import *
-from DiagUtil import get_hostname
 
 _LOGGER = logging.getLogger(__name__)
+
+memory: Dict[BaseEntity, Any] = {}
 
 class HAPublisher:
     def __init__(
@@ -105,17 +106,31 @@ class HAPublisher:
 
     async def publish_entity_state(self, entity: BaseEntity, state_value: Any):
         state_topic = entity.state_topic()
+        value: str
 
         try:
-            value: str
             if type(state_value) is str:
                 value = state_value
             else:
                 value = json.dumps(state_value)
+        except Exception:
+            _LOGGER.exception(f"Failed to parse value (Value: '{state_value}')")
+            raise
+
+        if entity not in memory:
+            memory[entity] = None
+
+        if memory[entity] == value:
+            _LOGGER.debug(f"Skipping sensor {entity.name}. Value saved in memory [{value}]")
+            return
+
+        memory[entity] = value
+
+        try:
             _LOGGER.debug(f"Publishing new entity state for '{entity.name}' [{value}]")
             self.client.publish(state_topic, value).wait_for_publish()
-        except Exception as e:
-            _LOGGER.exception(f"Failed to publish entity state for '{entity.name}' (Value: '{state_value}')")
+        except Exception:
+            _LOGGER.exception(f"Failed to parse value (Value: '{state_value}')")
             raise
 
     async def publish_all(self):
