@@ -64,12 +64,20 @@ def load_dev_device() -> dict[str, any]:
 
     return device_data
 
+def mqtt_topic_format(value: str) -> str:
+    if value.startswith('/'):
+        value = value[1:]
+    return value
 
 # Config
 MQTT_USER = os.environ.get('MQTT_USER')
 MQTT_PASS = os.environ.get('MQTT_PASS')
 MQTT_PORT = int(os.environ.get('MQTT_PORT'))
 MQTT_BROKER = os.environ.get('MQTT_BROKER')
+
+MQTT_CLIENT_ID = f"{os.environ.get("MQTT_CLIENT_ID")}"
+MQTT_PYDIAG_PREFIX = mqtt_topic_format(os.environ.get('MQTT_PYDIAG_PREFIX', 'pydiag/'))
+MQTT_HA_DISCOVERY_PREFIX = mqtt_topic_format(os.environ.get('MQTT_HA_DISCOVERY_PREFIX', 'homeassistant/'))
 
 DEVICE_NAME = os.environ.get('DEVICE_NAME')
 NETWORK_SPEED_UNIT = get_network_unit(os.environ.get('NETWORK_SPEED_UNIT', 'kB/s'))
@@ -84,6 +92,8 @@ if __name__ == '__main__':
     assert MQTT_PASS is not None, "MQTT_PASS is not set"
     assert MQTT_PORT is not None, "MQTT_PORT is not set"
     assert MQTT_BROKER is not None, "MQTT_BROKER is not set"
+    assert MQTT_PYDIAG_PREFIX is not None, "MQTT_PYDIAG_PREFIX is not set"
+    assert MQTT_HA_DISCOVERY_PREFIX is not None, "MQTT_HA_DISCOVERY_PREFIX is not set"
     print("MQTT configuration tests passed.")
 
     # Test network speed unit parsing
@@ -95,15 +105,17 @@ if __name__ == '__main__':
 
     # Test logging level parsing
     try:
-        level = get_logging_level(LOGGING_LEVEL)
-        assert isinstance(level, int), "Logging level should be an integer"
+        assert isinstance(LOGGING_LEVEL, int), "Logging level should be an integer"
         print(f"Logging level '{LOGGING_LEVEL}' is valid.")
     except Exception as e:
         print(f"Logging level test failed: {e}")
 
     try:
         dev_device = load_dev_device()
-        print("Dev device loaded")
-        print(dev_device)
+        if dev_device:
+            print("Dev device loaded")
+            print(dev_device)
+        else:
+            print("Dev device is disabled")
     except Exception as e:
         print(f"Failed to load dev device {e}")

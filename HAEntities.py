@@ -3,6 +3,7 @@ from dataclasses import dataclass, fields
 
 from HATypes import *
 from MDIIcons import IconEnum
+from vars import MQTT_PYDIAG_PREFIX, MQTT_HA_DISCOVERY_PREFIX, MQTT_CLIENT_ID
 
 @dataclass
 class DeviceInfoBuilder:
@@ -37,7 +38,6 @@ class BaseEntity:
     # Availability configuration
     availability_mode: Optional[AvailabilityMode] = 'latest'
     availability_template: Optional[str] = None
-    availability_topic: Optional[str] = None
 
     # Additional common configurations
     enabled_by_default: bool = True
@@ -45,36 +45,29 @@ class BaseEntity:
     entity_picture: Optional[str] = None
     qos: int = 0
 
-    def _build_availability(self) -> Optional[Dict[str, str]]:
-        if not self.availability_topic:
-            return None
+    # Placeholder for entity_type, to be overridden by class property
+    _entity_type: str = 'unknown'
 
+    @property
+    def entity_type(self) -> str:
+        """Read-only property for entity type."""
+        return self._entity_type
+
+    def _build_availability(self) -> Optional[Dict[str, str]]:
         return {
-            "topic": self.availability_topic,
+            "topic": f"{MQTT_PYDIAG_PREFIX}avail/{MQTT_CLIENT_ID}",
             "payload_available": "online",
             "payload_not_available": "offline"
         }
 
-    def topic_prefix(self):
+    def state_topic(self):
+        return f"{MQTT_PYDIAG_PREFIX}{MQTT_CLIENT_ID}/{self.unique_id}"
+
+    def config_topic(self):
         device_name = ''.join(c if c.isalnum() or c in ['_', '-'] else '_' for c in self.device.name.lower())
         sensor_name = ''.join(c if c.isalnum() or c in ['_', '-'] else '_' for c in self.name.lower())
 
-        entity_type = None
-
-        if isinstance(self, Sensor):
-            entity_type = 'sensor'
-        elif isinstance(self, BinarySensor):
-            entity_type = 'binary_sensor'
-        else:
-            raise Exception("Unkown sensor type")
-
-        return f"homeassistant/{entity_type}/{device_name}/{sensor_name}".lower()
-
-    def state_topic(self):
-        return f"{self.topic_prefix()}/state"
-
-    def config_topic(self):
-        return f"{self.topic_prefix()}/config"
+        return f"{MQTT_HA_DISCOVERY_PREFIX}{self.entity_type}/{device_name}/{sensor_name}/config"
 
     def to_dict(self) -> Dict[str, Any]:
         # Create base dictionary with common fields
@@ -90,7 +83,7 @@ class BaseEntity:
         optional_fields = {}
         for f in fields(self):
             # Skip fields that are always included or part of the base dict
-            if f.name in ['name', 'unique_id', 'device', 'qos']:
+            if f.name in ['name', 'unique_id', 'device', 'qos', '_entity_type']:
                 continue
 
             value = getattr(self, f.name)
@@ -112,9 +105,9 @@ class BaseEntity:
         if avail_info:
             entity_dict.update({
                 "availability": avail_info,
-                "availability_mode": self.availability_mode,
-                "availability_template": self.availability_template,
-                "availability_topic": self.availability_topic,
+                # "availability_mode": self.availability_mode,
+                # "availability_template": self.availability_template,
+                # "availability_topic": self.availability_topic,
             })
 
         return entity_dict
@@ -134,6 +127,9 @@ class Sensor(BaseEntity):
     state_class: Optional[StateClass] = None
     unit_of_measurement: Optional[str] = None
     value_template: Optional[str] = None
+
+    # Set entity_type at class level
+    _entity_type: str = 'sensor'
 
     # Additional sensor configurations
     encoding: str = 'utf-8'
@@ -156,6 +152,9 @@ class BinarySensor(BaseEntity):
     payload_on: str = 'ON'
     payload_off: str = 'OFF'
 
+    # Set entity_type at class level
+    _entity_type: str = 'binary_sensor'
+
     def __hash__(self) -> int:
         return hash(self.unique_id)
 
@@ -167,8 +166,8 @@ class BinarySensor(BaseEntity):
 if __name__ == '__main__':
     device_info = DeviceInfoBuilder(
         name='Agabubu',
-        model='Massive Cock Nigga',
-        manufacturer='Giganigga',
+        model='Device Model',
+        manufacturer='Manufacturer',
         identifiers=[ '00:15:5d:7a:22:a3' ]
     )
 
@@ -184,4 +183,4 @@ if __name__ == '__main__':
     import json
 
     print(json.dumps(temperature_sensor.to_dict(), indent=2))
-    print(f'ConfigTopic: {temperature_sensor.config_topic("sensor")}')
+    print(f'ConfigTopic: {temperature_sensor.config_topic()}')

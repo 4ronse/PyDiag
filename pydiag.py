@@ -143,13 +143,13 @@ async def main():
         try:
             await pub.register_entity(sensor, getter)
         except:
-            exit(1)
+            raise
 
     for sensor, getter in get_network_sensors().items():
         try:
             await pub.register_entity(sensor, getter)
         except:
-            exit(1)
+            raise
 
     try:
         while True:

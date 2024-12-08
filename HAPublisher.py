@@ -18,21 +18,22 @@ class HAPublisher:
         broker = MQTT_BROKER,
         port = MQTT_PORT,
         username = MQTT_USER,
-        password = MQTT_PASS
+        password = MQTT_PASS,
     ):
         self.broker = broker
         self.port = port
 
         # Specify the callback API version
         self.client = mqtt.Client(
-            client_id=f"RPi_Diagnostics_{get_hostname()}",
+            client_id=MQTT_CLIENT_ID,
             callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
             protocol=mqtt.MQTTProtocolVersion.MQTTv5,
         )
 
+        self.client.will_set(f"{MQTT_PYDIAG_PREFIX}avail/{MQTT_CLIENT_ID}", 'offline', 1, retain=True)
+
         self.client.on_connect = self._on_connect
         self.client.on_disconnect = self._on_disconnect
-
         self.client.username_pw_set(username, password)
 
         self.entity_value_getter_map: Dict[BaseEntity, Callable[[], Any]] = {}
@@ -55,6 +56,8 @@ class HAPublisher:
         if rc.is_failure:
             _LOGGER.error("Failed to connect to MQTT broker")
             raise Exception("Failed to connect to MQTT broker")
+
+        self.client.publish(f"{MQTT_PYDIAG_PREFIX}avail/{MQTT_CLIENT_ID}", 'online', 1, retain=True)
 
     def _on_disconnect(self, client: mqtt.Client, userdata: any, df: DisconnectFlags, rc: ReasonCode, properties: Union[Properties, None]):
         disconnect_reasons = {
