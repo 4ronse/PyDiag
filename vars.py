@@ -35,14 +35,47 @@ def get_logging_level(level_name: str) -> int:
     warnings.warn(f'Logging leve: "{level_name}" level not found!')
     return logging.INFO
 
+def load_dev_device() -> dict[str, any]:
+    if not int(os.environ.get('DEV_DEVICE_USE', 0)):
+        return {}
+
+    keys = [
+        'DEV_DEVICE_IDENTIFIERS',
+        'DEV_DEVICE_MANUFACTURER',
+        'DEV_DEVICE_MODEL',
+        'DEV_DEVICE_CONFIGURATION_URL',
+        'DEV_DEVICE_HW_VERSION',
+        'DEV_DEVICE_SW_VERSION',
+        'DEV_DEVICE_MODEL_ID',
+        'DEV_DEVICE_SERIAL_NUMBER',
+        'DEV_DEVICE_SUGGESTED_AREA',
+        'DEV_DEVICE_VIA_DEVICE',
+    ]
+
+    device_data = {}
+    for k in keys:
+        value = os.environ.get(k, None)
+        if value:
+            # Convert DEV_DEVICE_IDENTIFIERS to a list (comma-separated)
+            if k == 'DEV_DEVICE_IDENTIFIERS':
+                device_data['identifiers'] = [item.strip() for item in value.split(',')]
+            else:
+                device_data[k[11:].lower()] = value
+
+    return device_data
+
+
 # Config
 MQTT_USER = os.environ.get('MQTT_USER')
 MQTT_PASS = os.environ.get('MQTT_PASS')
-MQTT_PORT = os.environ.get('MQTT_PORT')
+MQTT_PORT = int(os.environ.get('MQTT_PORT'))
 MQTT_BROKER = os.environ.get('MQTT_BROKER')
 
-NETWORK_SPEED_UNIT = os.environ.get('NETWORK_SPEED_UNIT', 'kB/s')
-LOGGING_LEVEL = os.environ.get('LOGGING_LEVEL', 'info')
+DEVICE_NAME = os.environ.get('DEVICE_NAME')
+NETWORK_SPEED_UNIT = get_network_unit(os.environ.get('NETWORK_SPEED_UNIT', 'kB/s'))
+LOGGING_LEVEL = get_logging_level(os.environ.get('LOGGING_LEVEL', 'info'))
+
+DEV_DEVICE_CONFIG = load_dev_device()
 
 # Tests
 if __name__ == '__main__':
@@ -58,7 +91,7 @@ if __name__ == '__main__':
         unit = get_network_unit(NETWORK_SPEED_UNIT)
         print(f"Network speed unit '{NETWORK_SPEED_UNIT}' is valid.")
     except Exception as e:
-        print(f"Network speed unit test failed: {e=}")
+        print(f"Network speed unit test failed: {e}")
 
     # Test logging level parsing
     try:
@@ -66,4 +99,11 @@ if __name__ == '__main__':
         assert isinstance(level, int), "Logging level should be an integer"
         print(f"Logging level '{LOGGING_LEVEL}' is valid.")
     except Exception as e:
-        print(f"Logging level test failed: {e=}")
+        print(f"Logging level test failed: {e}")
+
+    try:
+        dev_device = load_dev_device()
+        print("Dev device loaded")
+        print(dev_device)
+    except Exception as e:
+        print(f"Failed to load dev device {e}")

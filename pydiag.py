@@ -6,7 +6,7 @@ from HAEntities import *
 from HAPublisher import HAPublisher
 from NetworkMonitor import NetworkMonitor
 from DiagUtil import *
-from vars import LOGGING_LEVEL, NETWORK_SPEED_UNIT
+from vars import LOGGING_LEVEL, NETWORK_SPEED_UNIT, DEV_DEVICE_CONFIG
 
 from typing import List, Callable, Any, Literal
 from colorlog import ColoredFormatter
@@ -54,17 +54,10 @@ async def main():
         model=get_rpi_model(),
         serial_number=get_serial_number(),
         manufacturer='Raspberry Pi'
-    )
-
-    if get_hostname() == 'DESKTOP-OBGTQEK':
-        device_info = DeviceInfoBuilder(
-            name=get_hostname(),
-            identifiers=['B4-2E-99-6E-5D-80'],
-            model='Gaming X',
-            model_id='Z390',
-            serial_number='B4-2E-99-6E-5D-80',
-            manufacturer='Gigabyte'
-        )
+    ) if not DEV_DEVICE_CONFIG else DeviceInfoBuilder.from_env({
+        **{'name': get_device_name()},
+        **DEV_DEVICE_CONFIG
+    })
 
     formatted_name = device_info.name.lower().replace(' ', '_').replace('-', '_')
 

@@ -1,7 +1,11 @@
-import os, socket, psutil
+import os
+import socket
+import psutil
 
 from subprocess import check_output
 from re import findall
+
+from vars import DEVICE_NAME, DEV_DEVICE_CONFIG
 
 MODEL_PATH = '/proc/device-tree/model'
 SERIAL_NUMBER_PATH = '/proc/device-tree/serial-number'
@@ -36,7 +40,14 @@ def is_raspberrypi():
 @strip
 @cache
 def get_hostname() -> str:
-    return socket.gethostname().strip()
+    return socket.gethostname()
+
+@strip
+@cache
+def get_device_name() -> str:
+    if DEVICE_NAME:
+        return DEVICE_NAME
+    return get_hostname()
 
 @strip
 @cache

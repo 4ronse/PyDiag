@@ -19,6 +19,10 @@ class DeviceInfoBuilder:
     sw_info: Optional[str] = None
     via_device: Optional[str] = None
 
+    @classmethod
+    def from_env(cls, dct: dict[str, any]) -> 'DeviceInfoBuilder':
+        return cls(**dct)
+
     def build(self) -> Dict[str, Any]:
         return {k: v for k, v in self.__dict__.items() if v is not None}
 
@@ -28,6 +32,7 @@ class BaseEntity:
     name: str
     unique_id: str
     device: DeviceInfoBuilder
+    icon: Optional[Union[IconEnum, str]] = None
 
     # Availability configuration
     availability_mode: Optional[AvailabilityMode] = 'latest'
@@ -128,7 +133,6 @@ class Sensor(BaseEntity):
     device_class: Optional[SensorDeviceClass] = None
     state_class: Optional[StateClass] = None
     unit_of_measurement: Optional[str] = None
-    icon: Optional[Union[IconEnum, str]] = None
     value_template: Optional[str] = None
 
     # Additional sensor configurations
@@ -147,8 +151,7 @@ class Sensor(BaseEntity):
 @dataclass
 class BinarySensor(BaseEntity):
     # Binary Sensor-specific attributes
-    device_class: Optional[BinarySensorDeviceClass] = None  # ! BinarySensorClass
-    icon: Optional[Union[IconEnum, str]] = None
+    device_class: Optional[BinarySensorDeviceClass] = None
     off_delay: Optional[int] = None
     payload_on: str = 'ON'
     payload_off: str = 'OFF'
