@@ -1,4 +1,7 @@
+import asyncio
+import logging
 import sys
+
 from HAEntities import *
 from HAPublisher import HAPublisher
 from NetworkMonitor import NetworkMonitor
@@ -7,9 +10,6 @@ from vars import LOGGING_LEVEL, NETWORK_SPEED_UNIT
 
 from typing import List, Callable, Any, Literal
 from colorlog import ColoredFormatter
-
-import asyncio
-import logging
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -65,8 +65,6 @@ async def main():
             serial_number='B4-2E-99-6E-5D-80',
             manufacturer='Gigabyte'
         )
-
-
 
     formatted_name = device_info.name.lower().replace(' ', '_').replace('-', '_')
 

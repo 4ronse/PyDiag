@@ -19,6 +19,19 @@ class NetworkMonitor:
             self.factor = factor
             self.unit_name = unit_name
 
+        @classmethod
+        def init_mapping(cls):
+            cls._nameUnitMapping = {unit.unit_name: unit for unit in cls}
+
+        @staticmethod
+        def get_by_name(name: str):
+            if not hasattr(NetworkMonitor.Unit, '_nameUnitMapping'):
+                NetworkMonitor.Unit.init_mapping()
+            mapping = NetworkMonitor.Unit._nameUnitMapping
+            if name in mapping:
+                return mapping[name]
+            raise ValueError(f'"{name}" is not defined!')
+
     def __init__(self, interface='eth0', sample_interval=1):
         self.interface = interface
         self.sample_interval = sample_interval

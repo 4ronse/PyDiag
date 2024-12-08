@@ -20,7 +20,7 @@ class HAPublisher:
         broker = MQTT_BROKER,
         port = MQTT_PORT,
         username = MQTT_USER,
-        password = MQTT_PASSWORD
+        password = MQTT_PASS
     ):
         self.broker = broker
         self.port = port
