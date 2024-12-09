@@ -72,6 +72,7 @@ def mqtt_topic_format(value: str) -> str:
 
 # Config
 MQTT_PUBLISH_INTERVAL = int(os.environ.get('MQTT_PUBLISH_INTERVAL', 5))
+MQTT_REPUBLISH_INTERVAL = int(os.environ.get('MQTT_REPUBLISH_INTERVAL', 300))
 MQTT_USER = os.environ.get('MQTT_USER')
 MQTT_PASS = os.environ.get('MQTT_PASS')
 MQTT_PORT = int(os.environ.get('MQTT_PORT'))

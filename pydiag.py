@@ -200,6 +200,8 @@ async def main():
 
         # Continuous publishing loop
         try:
+            # Add slight delay
+            await asyncio.sleep(2)
             while True:
                 await pub.publish_all()
                 await asyncio.sleep(MQTT_PUBLISH_INTERVAL)  # Publish every 5 seconds

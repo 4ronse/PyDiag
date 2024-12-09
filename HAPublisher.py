@@ -1,7 +1,9 @@
 import json
 import logging
 import paho.mqtt.client as mqtt
+
 from typing import Callable, Union, Dict, Any
+from datetime import datetime, timedelta
 
 from paho.mqtt.client import ConnectFlags, DisconnectFlags, ReasonCode, Properties
 from paho.mqtt.packettypes import PacketTypes
@@ -13,7 +15,27 @@ from HAEntities import BaseEntity
 _LOGGER = logging.getLogger(__name__)
 
 # Memory to cache entity states and prevent unnecessary republishing
-_entity_state_memory: Dict[BaseEntity, Any] = {}
+class _MemoryCacheDict(dict):
+    def __init__(self, *a, **kw) -> None:
+        super(*a, **kw)
+        self.last_updated_map: Dict[Any, datetime] = {}
+
+    def __setitem__(self, key, value):
+        self.last_updated_map[key] = datetime.now()
+        return super().__setitem__(key, value)
+
+    def __getitem__(self, key):
+        return super().__getitem__(key)
+
+    def when_was_updated(self, key) -> datetime | None:
+        if key not in self.last_updated_map:
+            return None
+        return self.last_updated_map[key]
+
+    def items(self):
+        return [(x[0], x[1], self.last_updated_map[x[0]]) for x in super().items()]
+
+_entity_state_memory: _MemoryCacheDict[BaseEntity, Any] = _MemoryCacheDict()
 
 class HAPublisher:
     """
@@ -218,7 +240,8 @@ class HAPublisher:
             raise
 
         # Check if value has changed to prevent unnecessary publishing
-        if (entity not in _entity_state_memory) or (_entity_state_memory[entity] != value):
+        if (entity not in _entity_state_memory) or \
+            (_entity_state_memory[entity] != value or datetime.now() - _entity_state_memory.when_was_updated(entity) > timedelta(seconds=MQTT_REPUBLISH_INTERVAL)):
             _entity_state_memory[entity] = value
 
             try:
@@ -251,3 +274,21 @@ class HAPublisher:
             self.client.disconnect()
         except Exception as e:
             _LOGGER.error(f"Error during MQTT cleanup: {e}")
+
+if __name__ == '__main__':
+    import asyncio
+
+    async def main():
+        d = _MemoryCacheDict()
+        d['a'] = 'b'
+
+        print(d.items())
+
+        await asyncio.sleep(5)
+
+        print(d, d.when_was_updated('a'))
+        print(datetime.now())
+        diff = datetime.now() - d.when_was_updated('a')
+        print(f"{diff=}")
+
+    asyncio.run(main())
