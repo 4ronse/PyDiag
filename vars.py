@@ -30,8 +30,9 @@ def get_logging_level(level_name: str) -> int:
         int: Logging level
     """
     level_name = level_name.upper()
-    if level_name in logging.getLevelNamesMapping():
-        return logging.getLevelNamesMapping()[level_name]
+    nameToLevel = logging._nameToLevel
+    if level_name in nameToLevel:
+        return nameToLevel[level_name]
     warnings.warn(f'Logging leve: "{level_name}" level not found!')
     return logging.INFO
 
@@ -76,7 +77,7 @@ MQTT_PASS = os.environ.get('MQTT_PASS')
 MQTT_PORT = int(os.environ.get('MQTT_PORT'))
 MQTT_BROKER = os.environ.get('MQTT_BROKER')
 
-MQTT_CLIENT_ID = f"{os.environ.get("MQTT_CLIENT_ID")}"
+MQTT_CLIENT_ID = os.environ.get("MQTT_CLIENT_ID")
 MQTT_PYDIAG_PREFIX = mqtt_topic_format(os.environ.get('MQTT_PYDIAG_PREFIX', 'pydiag/'))
 MQTT_HA_DISCOVERY_PREFIX = mqtt_topic_format(os.environ.get('MQTT_HA_DISCOVERY_PREFIX', 'homeassistant/'))
 
