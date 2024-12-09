@@ -54,7 +54,7 @@ def create_device_info() -> DeviceInfoBuilder:
     try:
         if not DEV_DEVICE_CONFIG:
             return DeviceInfoBuilder(
-                name=get_hostname(),
+                name=get_device_name(),
                 identifiers=[get_serial_number()],
                 model=get_rpi_model(),
                 serial_number=get_serial_number(),
